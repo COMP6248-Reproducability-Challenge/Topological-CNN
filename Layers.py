@@ -27,7 +27,7 @@ class CF_Layer(nn.Module):
 
    def __init__(self, size: int, slices: int):
        # Need to generate slices number of evenly spaced angles around a circle
-       thetas = [(i*np.pi)/size for i in range(size)]
+       thetas = [(i*np.pi*2)/size for i in range(slices)]
 
        self.filters = []
 
