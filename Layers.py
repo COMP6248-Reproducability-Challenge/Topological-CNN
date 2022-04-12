@@ -22,11 +22,10 @@ class KF_Layer(nn.Module):
        output = []
        for filter in self.filters:
            nb_channels = 1
-           filter = torch.tensor(filter)
-           filter = filter.view(1, filter.shape[0], filter.shape[1])
-           print(filter.shape)
-           output.append(F.conv2d(x, filter,None, 1).squeeze(0))
-       return torch.tensor(output)
+           filter = torch.tensor(filter, dtype=torch.float32)
+           filter = filter.view(1, 1, filter.shape[0], filter.shape[1]).repeat(1, nb_channels, 1, 1)
+           output.append(F.conv2d(x, filter).squeeze(0))
+       return torch.stack(output)
 
 
 class CF_Layer(nn.Module):
@@ -38,11 +37,14 @@ class CF_Layer(nn.Module):
        self.filters = []
 
        for theta in thetas:
-           filters.append(generate_pc_filter(size, theta))
+           self.filters.append(generate_pc_filter(size, theta))
 
 
    def forward(self, x):
       output = []
       for filter in self.filters:
-          output.append(F.conv2d(x, torch.tensor(filter)).squeeze(0))
-      return torch.tensor(output)
+          nb_channels = 1
+          filter = torch.tensor(filter, dtype=torch.float32)
+          filter = filter.view(1, 1, filter.shape[0], filter.shape[1]).repeat(1, nb_channels, 1, 1)
+          output.append(F.conv2d(x, filter).squeeze(0))
+      return torch.stack(output)
