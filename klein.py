@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.cm as cm
 import os
-from scipy.integrate import quad,dblquad
+from scipy.integrate import dblquad
 
 def Q(t: float) -> float:
     return (2*t)**2 - 1
@@ -45,8 +45,8 @@ def generate_pc_filter(size: int, theta1: float) -> np.ndarray:
 
 
            Filter = dblquad(primary_circle,xmin,xmax,ymin,ymax, args=(theta1))[0]
-           klein_filter[y][x] = Filter
-    return np.array(klein_filter)
+           pc_filter[y][x] = Filter
+    return np.array(pc_filter)
 
 
 # Displays all combinations
