@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Layers import KF_Layer, CF_layer
+from Layers import KF_Layer, CF_Layer
 
 class NOL_NOL(nn.Module):
     def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
