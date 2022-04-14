@@ -30,7 +30,7 @@ class NOL_NOL(nn.Module):
 
 
 class KF_NOL(nn.Module):
-     def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
+    def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
         super().__init__()
 
         self.convs = nn.Sequential(
@@ -55,7 +55,7 @@ class KF_NOL(nn.Module):
         return F.softmax(x, dim=1)
 
 class CF_NOL(nn.Module):
-     def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
+    def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
         super().__init__()
 
         self.convs = nn.Sequential(
