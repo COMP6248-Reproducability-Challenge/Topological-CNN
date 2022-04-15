@@ -1,6 +1,6 @@
 import datetime
 import time
-
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -8,6 +8,7 @@ from torch.utils.data.dataloader import DataLoader
 import Experiments.Generalizability.data as data
 from models import NOL_NOL
 from params import params
+
 
 results = {
     'parameters': params,
@@ -35,6 +36,8 @@ def train(model, train_loader, test_loader, optimiser, loss_function, device, ep
 
                 print(f"Epoch {epoch}: batch {batch_idx}, generalisation accuracy {accuracy}")
 
+                model.train()
+
 def test(model, test_loader):
     model.eval()
     correct = 0
@@ -47,8 +50,6 @@ def test(model, test_loader):
             correct += (outputs.argmax(dim=1) == target).type(torch.float).sum().item()
             total += data.shape[0]
 
-    print('Test Accuracy: %2.2f %%' % ((100.0 * correct) / total))
-
     return ((100.0 * correct) / total)
 
 def save_model(model):
@@ -60,21 +61,21 @@ def save_model(model):
 if __name__ == "__main__":
 
     # let's try training on MINST using NOL+NOL model first
-    # TODO: create a configuration file for different parameters
+    # Make sure to adjust parameters in params.py
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     training_dataset = data.load_MINST(False)
     train_loader = DataLoader(training_dataset, batch_size=params['batch_size'], shuffle=True)
 
     test_dataset = data.load_SVHN(False)
-    test_loader = DataLoader(training_dataset, batch_size=params['batch_size'], shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=params['batch_size'], shuffle=True)
 
     model = NOL_NOL(params['conv_slices'], params['kernel_size'], params['num_classes'], params['image_dim']).to(device)
     loss_function = nn.CrossEntropyLoss()
     optimiser = optim.Adam(model.parameters(), lr=params['learning_rate'])
 
     train_start_time = time.time()
-    #train(model, train_loader, test_loader, optimiser, loss_function, device, epochs=5)
+    #train(model, train_loader, test_loader, optimiser, loss_function, device, epochs=params['epochs'])
     train_time = datetime.timedelta(0, time.time() - train_start_time)
     results['train_time'] = str(train_time)
     print(f'Training completed in {train_time}')
