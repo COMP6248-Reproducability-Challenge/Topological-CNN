@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from Layers import KF_Layer, CF_Layer
 
+# TODO: test and fix construction of KF and CF layers
+
 class NOL_NOL(nn.Module):
     def __init__(self, conv_slices: int, kernel_size: int, num_classes: int, image_dim: tuple):
         super().__init__()
@@ -26,7 +28,9 @@ class NOL_NOL(nn.Module):
         x = self.convs(x)
         x = x.view(-1, self.input_size)
         x = self.fcs(x)
-        return F.softmax(x, dim=1)
+        if not self.training:  # nn.CrossEntropyLoss implicitly adds a softmax before a logarithmic loss
+            x = F.softmax(x, dim=1)
+        return x
 
 
 class KF_NOL(nn.Module):
