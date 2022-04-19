@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from scipy.stats import norm, chi2
-
+from sklearn.model_selection import train_test_split
 class Noisy_MNIST:
     def __init__(self,trainsplit: int):
 
@@ -40,15 +40,17 @@ class Noisy_MNIST:
             mean, var = noises[int(self.y[i][0])]
             self.noisy_X[i] = self.noisy_X[i] + norm.rvs(mean,var,self.noisy_X[0].shape)
 
+        self.noisy_X_train, self.noisy_X_test, self.noisy_y_train, self.noisy_y_test = train_test_split(noisy_X, y, test_split = 0.15, random_state = 42)
+        self.clean_X_train, self.clean_X_test, self.clean_y_train, self.clean_y_test = train_test_split(X, y, test_split = 0.15, random_state = 42)
 
     def get_noisy_trainset():
-        pass
+        return self.noisy_X_train, self.noisy_y_train
 
     def get_noisy_testset():
-        pass
+        return self.noisy_X_test, self.noisy_y_test
 
     def get_clean_trainset():
-        pass
+        return self.clean_X_test, self.clean_y_test
 
     def get_clean_testset():
-        pass
+        return self.clean_X_test, self.clean_y_test
