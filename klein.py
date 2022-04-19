@@ -44,7 +44,7 @@ def generate_pc_filter(size: int, theta1: float) -> np.ndarray:
            ymax = -1.0 + ((2*(y+1.0)) /(2*size))
 
 
-           Filter = dblquad(primary_circle,xmin,xmax,ymin,ymax, args=(theta1))[0]
+           Filter = dblquad(primary_circle,xmin,xmax,ymin,ymax, args=((theta1,)))[0]
            pc_filter[y][x] = Filter
     return np.array(pc_filter)
 
