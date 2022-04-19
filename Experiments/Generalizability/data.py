@@ -1,6 +1,10 @@
 from torchvision import transforms, datasets
 from torch.utils.data import ConcatDataset, Subset
 import torch
+from os import listdir
+from PIL import Image
+from torchvision.datasets import ImageFolder
+from sklearn.model_selection import train_test_split
 
 def load_MINST(download=False):
     trainset = datasets.MNIST(".", train=True, download=download,
@@ -46,4 +50,42 @@ def load_CIFAR_cats_dogs(download=False):
     test_subset = Subset(testset, test_indices)
 
     return ConcatDataset([train_subset, test_subset])  # 10000 + 2000 = 12000
+
+# Image loader adapted from https://www.kaggle.com/code/adinishad/pytorch-cats-and-dogs-classification/notebook
+class ImageLoader(Dataset):
+    def __init__(self, dataset, transform=None):
+        self.dataset = self.checkLoadable(dataset) 
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self, item):
+        image = Image.open(self.dataset[item][0])
+        classCategory = self.dataset[item][1]
+        if self.transform:
+            image = self.transform(image)
+        return image, classCategory
+        
+    
+    def checkLoadable(self,dataset):
+        datasetLoadable = []
+        for index in range(len(dataset)):
+            try:
+                Image.open(dataset[index][0])
+                datasetLoadable.append(dataset[index])
+            except (IOError, SyntaxError) as e:
+                pass
+        return datasetLoadable
+    
+def load_Kaggle_cats_dogs():
+    dataset = ImageFolder("kagglecatsanddogs_3367a/PetImages/")
+    train_data, test_data, train_label, test_label = train_test_split(dataset.imgs, dataset.targets, test_size=0.05, random_state=42)
+    train_transform = transforms.Compose([transforms.Resize((32, 32)),
+                                          transforms.ToTensor(),
+                                          transforms.Grayscale()])
+    train_dataset = ImageLoader(train_data, train_transform)
+    test_dataset = ImageLoader(test_data,train_transform)
+    entire_dataset = ConcatDataset([train_dataset, test_dataset])
+    return entire_dataset  
 
