@@ -163,6 +163,8 @@ class KF_NOL(nn.Module):
             nn.Linear(512, num_classes)
         )
 
+        self.convs[0].requires_grad = False
+
     def forward(self, x):
         x = self.convs(x)
         x = x.view(-1, self.input_size)
