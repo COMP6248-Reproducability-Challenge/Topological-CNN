@@ -37,20 +37,20 @@ class Noisy_MNIST:
         self.noisy_X = torch.clone(self.X)
 
         for i in range(self.noisy_X.shape[0]):
-            mean, var = noises[int(self.y[i][0])]
+            mean, var = noises[int(self.y[i].item())]
             self.noisy_X[i] = self.noisy_X[i] + norm.rvs(mean,var,self.noisy_X[0].shape)
 
-        self.noisy_X_train, self.noisy_X_test, self.noisy_y_train, self.noisy_y_test = train_test_split(noisy_X, y, test_split = 0.15, random_state = 42)
-        self.clean_X_train, self.clean_X_test, self.clean_y_train, self.clean_y_test = train_test_split(X, y, test_split = 0.15, random_state = 42)
+        self.noisy_X_train, self.noisy_X_test, self.noisy_y_train, self.noisy_y_test = train_test_split(self.noisy_X, self.y, test_size =  0.15, random_state = 42)
+        self.clean_X_train, self.clean_X_test, self.clean_y_train, self.clean_y_test = train_test_split(self.X, self.y, test_size =  0.15, random_state = 42)
 
-    def get_noisy_trainset():
+    def get_noisy_trainset(self):
         return self.noisy_X_train, self.noisy_y_train
 
-    def get_noisy_testset():
+    def get_noisy_testset(self):
         return self.noisy_X_test, self.noisy_y_test
 
-    def get_clean_trainset():
+    def get_clean_trainset(self):
         return self.clean_X_test, self.clean_y_test
 
-    def get_clean_testset():
+    def get_clean_testset(self):
         return self.clean_X_test, self.clean_y_test
