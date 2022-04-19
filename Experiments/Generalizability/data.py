@@ -1,5 +1,6 @@
 from torchvision import transforms, datasets
 from torch.utils.data import ConcatDataset, Subset
+from torch.utils.data import DataLoader, Dataset
 import torch
 from os import listdir
 from PIL import Image
