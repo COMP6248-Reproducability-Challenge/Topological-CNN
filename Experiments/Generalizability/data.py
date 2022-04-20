@@ -47,6 +47,14 @@ def load_CIFAR_cats_dogs(download=False):
                 torch.tensor(testset.targets) == testset.classes.index('dog'))
     test_indices = test_mask.nonzero().reshape(-1)
 
+    # replace cats and dogs labels to 0 and 1 respectively
+    trainset.targets = torch.tensor(trainset.targets)
+    trainset.targets[trainset.targets == 3] = 0
+    trainset.targets[trainset.targets == 5] = 1
+    testset.targets = torch.tensor(testset.targets)
+    testset.targets[testset.targets == 3] = 0
+    testset.targets[testset.targets == 5] = 1
+
     train_subset = Subset(trainset, train_indices)
     test_subset = Subset(testset, test_indices)
 
