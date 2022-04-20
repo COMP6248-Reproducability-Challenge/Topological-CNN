@@ -2,11 +2,12 @@
 from torchvision.datasets import MNIST
 import torchvision.transforms as transforms
 import torch
+from torch.utils.data import Dataset
 import numpy as np
 from scipy.stats import norm, chi2
 from sklearn.model_selection import train_test_split
 class Noisy_MNIST:
-    def __init__(self,trainsplit: int):
+    def __init__(self,test_size = 0.15):
 
         transform = transforms.Compose([
             transforms.ToTensor()])
@@ -40,8 +41,8 @@ class Noisy_MNIST:
             mean, var = noises[int(self.y[i].item())]
             self.noisy_X[i] = self.noisy_X[i] + norm.rvs(mean,var,self.noisy_X[0].shape)
 
-        self.noisy_X_train, self.noisy_X_test, self.noisy_y_train, self.noisy_y_test = train_test_split(self.noisy_X, self.y, test_size =  0.15, random_state = 42)
-        self.clean_X_train, self.clean_X_test, self.clean_y_train, self.clean_y_test = train_test_split(self.X, self.y, test_size =  0.15, random_state = 42)
+        self.noisy_X_train, self.noisy_X_test, self.noisy_y_train, self.noisy_y_test = train_test_split(self.noisy_X, self.y, test_size = test_size , random_state = 42)
+        self.clean_X_train, self.clean_X_test, self.clean_y_train, self.clean_y_test = train_test_split(self.X, self.y, test_size =  test_size, random_state = 42)
 
     def get_noisy_trainset(self):
         return self.noisy_X_train, self.noisy_y_train
@@ -54,3 +55,18 @@ class Noisy_MNIST:
 
     def get_clean_testset(self):
         return self.clean_X_test, self.clean_y_test
+
+class MNISTDataset(Dataset):
+
+    def __init__(self,mnist_data, train=True, noisy=True):
+        self.data = None
+        if train and noisy: self.data = mnist_data.get_noisy_trainset()
+        elif train and not noisy: self.data = mnist_data.get_clean_trainset()
+        elif not train and noisy: self.data = mnist_data.get_noisy_testset()
+        elif not train and not noisy: self.data = mnist_data.get_clean_testset()
+
+    def __len__(self):
+        return self.data[0].shape[0]
+
+    def __getitem__(self,idx):
+        return self.data[0][idx], self.data[1][idx]
