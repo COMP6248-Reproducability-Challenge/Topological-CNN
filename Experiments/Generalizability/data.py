@@ -33,9 +33,9 @@ def load_CIFAR_cats_dogs(download=False):
         transforms.Grayscale(),
         transforms.ToTensor()
     ]) # image from [3, 32, 32] to [1, 32, 32]
-    trainset = datasets.CIFAR10(root='CIFAR/', train=True, download=True,
+    trainset = datasets.CIFAR10(root='CIFAR/', train=True, download=download,
                                 transform=cifar_transform)
-    testset = datasets.CIFAR10(root='CIFAR/', train=False, download=True,
+    testset = datasets.CIFAR10(root='CIFAR/', train=False, download=download,
                                transform=cifar_transform)
 
     # Create a subset of two classes - cats and dogs
