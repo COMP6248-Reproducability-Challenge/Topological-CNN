@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("../../")
 import torchbearer
 from models import NOL_NOL, KF_NOL, CF_NOL
 import torch.optim as optim
 from noisy_MNIST import Noisy_MNIST, MNISTDataset
 import torch.nn as nn
 from torch.utils.data import Dataset
+import torch
+from torch.utils.data.dataloader import DataLoader
 
 EPOCHS = 5
 LR = 1e-5
@@ -68,6 +72,7 @@ def save_model(model):
 
 if __name__ == "__main__":
 
+    print("Generating Dataset ...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     raw_data = Noisy_MNIST()
 
@@ -77,14 +82,17 @@ if __name__ == "__main__":
     clean_trainset = MNISTDataset(raw_data, noisy=False)
     clean_testset = MNISTDataset (raw_data, noisy=False, train=False)
 
-    noisy_trainloader = Dataloader(noisy_trainset, batch_size = BATCH_SIZE, shuffle=True)
-    noisy_testloader =  Dataloader(noisy_testset, batch_size = BATCH_SIZE, shuffle=True)
+    print("Creating Dataloaders ...")
+    noisy_trainloader = DataLoader(noisy_trainset, batch_size = BATCH_SIZE, shuffle=True)
+    noisy_testloader =  DataLoader(noisy_testset, batch_size = BATCH_SIZE, shuffle=True)
 
-    clean_trainloader = Dataloader(clean_trainset, batch_size = BATCH_SIZE, shuffle=True)
-    clean_testloader =  Dataloader(clean_testset, batch_size = BATCH_SIZE, shuffle=True)
+    clean_trainloader = DataLoader(clean_trainset, batch_size = BATCH_SIZE, shuffle=True)
+    clean_testloader =  DataLoader(clean_testset, batch_size = BATCH_SIZE, shuffle=True)
 
-    models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('KF+NOL', KF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('CF+NOL', CF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
+    #models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('KF+NOL', KF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('CF+NOL', CF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
+    models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
     experiment_results = {}
 
+    print('Training ...')
     for model_id, model in models:
         experiment_results[model_id] = train(model, clean_trainloader, noisy_testloader, device, EPOCHS )
