@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+
 sys.path.append("../../")
 import torchbearer
 from models import NOL_NOL, KF_NOL, CF_NOL
@@ -9,6 +10,8 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 import torch
 from torch.utils.data.dataloader import DataLoader
+import json
+import time
 
 EPOCHS = 5
 LR = 1e-5
@@ -16,8 +19,9 @@ BATCH_SIZE = 100
 dataset = Noisy_MNIST(0.15)
 KERNEL_SIZE = 3
 CONV_SLICES = 64
-IMAGE_SIZE = (28,28)
+IMAGE_SIZE = (28, 28)
 NUM_CLASSES = 10
+
 
 def train(model, train_loader, test_loader, device, epochs=1):
     model.train()
@@ -25,11 +29,8 @@ def train(model, train_loader, test_loader, device, epochs=1):
 
     loss_function = nn.CrossEntropyLoss()
     optimiser = optim.Adam(model.parameters(), lr=LR)
-    
-    results = {
-	'training_loss': [],
-	'testing_accuracy': []
-    }
+
+    results = {"training_loss": [], "testing_accuracy": []}
 
     for epoch in range(epochs):
         for batch_idx, (data, target) in enumerate(train_loader):
@@ -41,14 +42,15 @@ def train(model, train_loader, test_loader, device, epochs=1):
             optimiser.step()
 
             if batch_idx % log_interval == 0:
-                results['training_loss'].append(loss.item())
+                results["training_loss"].append(loss.item())
                 accuracy = test(model, test_loader)
-                results['testing_accuracy'].append(accuracy)
+                results["testing_accuracy"].append(accuracy)
 
-                print(f"Epoch {epoch}: batch {batch_idx}, generalisation accuracy {accuracy}")
+                print(f"Epoch {epoch}: batch {batch_idx}, test accuracy {accuracy}")
 
                 model.train()
     return results
+
 
 def test(model, test_loader):
     model.eval()
@@ -62,13 +64,15 @@ def test(model, test_loader):
             correct += (outputs.argmax(dim=1) == target).type(torch.float).sum().item()
             total += data.shape[0]
 
-    return ((100.0 * correct) / total)
+    return (100.0 * correct) / total
 
-def save_model(model):
-    torch.save(model.state_dict(), f"Checkpoint/{params['checkpoint']}_{params['experiment_type']}_{params['model']}_weights")
 
-    with open(f'Checkpoint/{params["checkpoint"]}_{params["experiment_type"]}_{params["model"]}_results.json', 'w') as f:
-        json.dump(results, f)
+def save_model(model, model_name):
+    torch.save(
+        model.state_dict(),
+        f'Checkpoint/{time.strftime("%Y_%m_%d_%H_%M_%S")}_Synthetic_{model_name}_weights',
+    )
+
 
 if __name__ == "__main__":
 
@@ -80,19 +84,50 @@ if __name__ == "__main__":
     noisy_testset = MNISTDataset(raw_data, train=False)
 
     clean_trainset = MNISTDataset(raw_data, noisy=False)
-    clean_testset = MNISTDataset (raw_data, noisy=False, train=False)
+    clean_testset = MNISTDataset(raw_data, noisy=False, train=False)
 
     print("Creating Dataloaders ...")
-    noisy_trainloader = DataLoader(noisy_trainset, batch_size = BATCH_SIZE, shuffle=True)
-    noisy_testloader =  DataLoader(noisy_testset, batch_size = BATCH_SIZE, shuffle=True)
+    noisy_trainloader = DataLoader(noisy_trainset, batch_size=BATCH_SIZE, shuffle=True)
+    noisy_testloader = DataLoader(noisy_testset, batch_size=BATCH_SIZE, shuffle=True)
 
-    clean_trainloader = DataLoader(clean_trainset, batch_size = BATCH_SIZE, shuffle=True)
-    clean_testloader =  DataLoader(clean_testset, batch_size = BATCH_SIZE, shuffle=True)
+    clean_trainloader = DataLoader(clean_trainset, batch_size=BATCH_SIZE, shuffle=True)
+    clean_testloader = DataLoader(clean_testset, batch_size=BATCH_SIZE, shuffle=True)
 
-    #models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('KF+NOL', KF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device)), ('CF+NOL', CF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
-    models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
+    models = [
+        (
+            "NOL+NOL",
+            NOL_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+            NOL_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+        ),
+        (
+            "KF+NOL",
+            KF_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+            KF_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+        ),
+        (
+            "CF+NOL",
+            CF_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+            CF_NOL(CONV_SLICES, KERNEL_SIZE, NUM_CLASSES, IMAGE_SIZE).to(device),
+        ),
+    ]
+    # , ('CF+NOL', CF_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))
+    # models = [('NOL+NOL',NOL_NOL(CONV_SLICES,KERNEL_SIZE,NUM_CLASSES,IMAGE_SIZE).to(device))]
     experiment_results = {}
 
-    print('Training ...')
-    for model_id, model in models:
-        experiment_results[model_id] = train(model, clean_trainloader, noisy_testloader, device, EPOCHS )
+    print("Training ...")
+    for model_id, clean_model, noisy_model in models:
+        print("Training: " + model_id)
+        experiment_results[model_id + "_noisy_test"] = train(
+            clean_model, clean_trainloader, noisy_testloader, device, EPOCHS
+        )
+        save_model(clean_model, model_id + "_noisy_test")
+        experiment_results[model_id + "_noisy_train"] = train(
+            noisy_model, noisy_trainloader, clean_testloader, device, EPOCHS
+        )
+        save_model(clean_model, model_id + "_noisy_train")
+
+    with open(
+        f'Checkpoint/{time.strftime("%Y_%m_%d_%H_%M_%S")}_Synthetic_results.json',
+        "w",
+    ) as f:
+        json.dump(experiment_results, f)
