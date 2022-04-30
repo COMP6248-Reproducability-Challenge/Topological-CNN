@@ -98,8 +98,8 @@ class ImageLoader(Dataset):
         datasetLoadable = []
         for index in range(len(dataset)):
             try:
-                Image.open(dataset[index][0])
-                datasetLoadable.append(dataset[index])
+                if (Image.open(dataset[index][0]).getbands() == ("R", "G", "B")):
+                    datasetLoadable.append(dataset[index])
             except (IOError, SyntaxError) as e:
                 pass
         return datasetLoadable
