@@ -79,7 +79,7 @@ class Noisy_MNIST:
         return self.noisy_X_test, self.noisy_y_test
 
     def get_clean_trainset(self):
-        return self.clean_X_test, self.clean_y_test
+        return self.clean_X_train, self.clean_y_train
 
     def get_clean_testset(self):
         return self.clean_X_test, self.clean_y_test

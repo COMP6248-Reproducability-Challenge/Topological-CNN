@@ -225,4 +225,8 @@ class CF_NOL(nn.Module):
         x = self.convs(x)
         x = x.view(-1, self.input_size)
         x = self.fcs(x)
-        return F.softmax(x, dim=1)
+        if (
+            not self.training
+        ):  # nn.CrossEntropyLoss implicitly adds a softmax before a logarithmic loss
+            x = F.softmax(x, dim=1)
+        return x
