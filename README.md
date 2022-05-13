@@ -12,5 +12,7 @@ pip install -r requirements.txt
 ```
 
 # Training
-
-# Contributors
+To train models for interpretability, synthetic, and generalizability experiments, go to corresponding experiment directories in Experiment folder and run:
+```
+python train.py
+```
