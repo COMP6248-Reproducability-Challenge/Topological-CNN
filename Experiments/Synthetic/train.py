@@ -30,20 +30,27 @@ def train(model, train_loader, test_loader, device, epochs=1):
     loss_function = nn.CrossEntropyLoss()
     optimiser = optim.Adam(model.parameters(), lr=LR)
 
-    results = {"training_loss": [], "testing_accuracy": []}
+    results = {"training_loss": [], "testing_accuracy": [], "training_time": 0, "testing_time":0}
 
     for epoch in range(epochs):
         for batch_idx, (data, target) in enumerate(train_loader):
+            train_start = time.perf_counter()
             data, target = data.to(device), target.to(device)
             optimiser.zero_grad()
             outputs = model(data)
             loss = loss_function(outputs, target)
             loss.backward()
             optimiser.step()
+            train_stop = time.perf_counter()
+
+            results["training_time"] += train_start - train_stop
 
             if batch_idx % log_interval == 0:
                 results["training_loss"].append(loss.item())
+                test_start = time.perf_counter()
                 accuracy = test(model, test_loader)
+                test_stop = time.perf_counter()
+                results["testing_time"] += test_start - test_stop
                 results["testing_accuracy"].append(accuracy)
 
                 print(f"Epoch {epoch}: batch {batch_idx}, test accuracy {accuracy}")
