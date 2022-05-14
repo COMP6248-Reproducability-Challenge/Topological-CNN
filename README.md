@@ -16,3 +16,8 @@ To train models for interpretability, synthetic, and generalizability experiment
 ```
 python train.py
 ```
+# Team
+- Benjamin Lellouch (brl1u18)
+- Gabija Petroskeviciute (gp1u18)
+- Gopika Bejoy (gb1n17)
+- Palak Jain (ppj1u18)
